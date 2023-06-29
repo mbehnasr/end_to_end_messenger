@@ -11,25 +11,28 @@ import logging
 # logger.setLevel(logging.DEBUG)
 # logger.addHandler(logging.StreamHandler())
 
-
+users=[]
 
 CONNECTIONS = set()
-USERS = "users.json"
-async def save_user(user):
+# USERS = "./users.json"
+async def save_user(user, websocket):
     global USERS
     try:
         new_user = {
-            [user["uuid"]]: user["userId"]
+            user["uuid"]: str(websocket),
         }
 
-        users = json.dumps(USERS)
-        users.append(new_user)
+        with open('./users.json') as file:
+            json_data = json.load(file)
 
-        with open(USERS, "w") as file:
-            json.dump(users, file, indent=4)
+        json_data.append(new_user)
+        print(json_data)
+        with open('users.json', 'w') as file:
+               json.dump(json_data, file)
+#         await asyncio.sleep(random.random() * 2 + 10)
+        websockets.broadcast(CONNECTIONS, json.dumps(json_data.append({"type": "users"})))
 
-        print("omad tosh")
-        print(f"Received and saved file: {userId}")
+        print(f"Received and saved file: {new_user}")
     except json.JSONDecodeError as e:
         print(f"Invalid JSON format: {e}")
 
@@ -45,7 +48,8 @@ async def register(websocket):
     new_user = await websocket.recv()
     new_user = json.loads(new_user)
     print(new_user["uuid"])
-    await save_user(new_user)
+    await save_user(new_user , websocket)
+
     try:
 
         await websocket.wait_closed()
