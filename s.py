@@ -16,9 +16,10 @@ import logging
 CONNECTIONS = set()
 USERS = "users.json"
 async def save_user(user):
+    global USERS
     try:
-        """ new_user = {
-            [user[uuid]]: user[userId]
+        new_user = {
+            [user["uuid"]]: user["userId"]
         }
 
         users = json.dumps(USERS)
@@ -26,7 +27,7 @@ async def save_user(user):
 
         with open(USERS, "w") as file:
             json.dump(users, file, indent=4)
- """
+
         print("omad tosh")
         print(f"Received and saved file: {userId}")
     except json.JSONDecodeError as e:
@@ -41,11 +42,12 @@ async def register(websocket):
     print(id(websocket))
     CONNECTIONS.add(websocket)
     print(CONNECTIONS)
+    new_user = await websocket.recv()
+    new_user = json.loads(new_user)
+    print(new_user["uuid"])
+    await save_user(new_user)
     try:
-        new_user = await websocket.recv()
-        new_user = json.loads(new_user)
-        print(new_user)
-        await register(new_user["uuid"])
+
         await websocket.wait_closed()
     finally:
         CONNECTIONS.remove(websocket)
