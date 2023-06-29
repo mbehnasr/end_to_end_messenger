@@ -42,7 +42,7 @@ async def register(websocket):
     CONNECTIONS.add(websocket)
     print(CONNECTIONS)
     try:
-        new_user = await websockets.recv()
+        new_user = await websocket.recv()
         new_user = json.loads(new_user)
         print(new_user)
         await register(new_user["uuid"])
