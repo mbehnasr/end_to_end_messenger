@@ -39,6 +39,33 @@ file_out = open("receiver.pem", "wb")
 file_out.write(public_key)
 file_out.close()
 #Beine in file va file baadi byd amaliate tabadole session key anjam she. """
+async def receiver_async(websocket):
+    while True:
+            receive_message = await websocket.recv()
+            receive_message_json = json.loads(receive_message)
+            print(receive_message)
+
+def receiver(websocket):
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    loop.run_until_complete(receiver_async(websocket))
+    loop.close()
+
+async def sender(websocket):
+    while True:
+
+#         options = input("\nEnter number you wana do :\n 1-send message:\n 2-exit:")
+#         if(options == 1):
+        target_user = input("\nEnter target user UUID:\n")
+
+        message = {}
+        message["type"] = "send_message"
+        message["target_user"] = target_user
+        message["message"] = "I wana connect to another person"
+        message["public_key"] = str(public_key)
+        type(public_key)
+        await websocket.send(json.dumps({"type":"send_message","target_user":target_user,"message":"I wana connect to another person","public_key":str(public_key),"sender_user":client_uuid}))
 
 
 async def hello():
@@ -63,21 +90,12 @@ async def hello():
             for key in keys:
                 print(key)
 
+        recv_thread = threading.Thread(target=receiver(websocket), args=(1,))
+        send_thread = threading.Thread(target=sender(websocket), args=(1,))
 
-        while True:
-            target_user = input("\ninput target user:\n")
-            print(f">>> {target_user}")
-            message = {}
-            message["type"] = "send_message"
-            message["target_user"] = target_user
-            message["message"] = "I wana connect to another person"
-            message["public_key"] = public_key
-            type(public_key)
 
-            await websocket.send(json.dumps({"type":"send_message","target_user":target_user,"message":"I wana connect to another person","public_key":str(public_key)}))
 
-            answer = await websocket.recv()
-            print(f"<<< {answer}")
+
 
 async def main():
     async with websockets.serve(hello, "localhost", 8765):

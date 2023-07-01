@@ -7,6 +7,7 @@ import websockets
 import json
 import os
 import logging
+import threading
 
 
 #Beine in file va file baadi byd amaliate tabadole session key anjam she.
@@ -69,8 +70,8 @@ async def save_user(user, websocket):
 #         await asyncio.sleep(random.random() * 2 + 10)
 #         websockets.broadcast(CONNECTIONS, json.dumps(json_data.append({"type": "users"})))
         for socket in CONNECTIONS:
-            await socket.send("is connected")
-            await socket.send(json.dumps(json_users_with_new_user))
+#             await socket.send("is connected")
+            await socket.send(str(CONNECTIONS))
     except json.JSONDecodeError as e:
         print(f"Invalid JSON format: {e}")
 
@@ -85,7 +86,7 @@ async def register(websocket):
 
     new_user = await websocket.recv()
     new_user = json.loads(new_user)
-#     print(new_user["uuid"])
+
     await save_user(new_user , websocket)
 
 
@@ -96,14 +97,9 @@ async def register(websocket):
         CONNECTIONS.remove(websocket)
         connected_clients.pop(client_id, None)
 
-
-
-
-async def communicate(websocket):
+async def receiver_async(websocket):
     while True:
-
         message = await websocket.recv()
-#         print(message)
         message_json = json.loads(message)
         if(message_json["type"] == SEND_MESSAGE_TO_ANOTHER):
             """ with open('./users.json') as file:
@@ -111,16 +107,30 @@ async def communicate(websocket):
             print(type(json_users))
             print(json_users)
             print(connected_clients[message_json["target_user"]]) """
-            websocket_target_user = connected_clients.get(message_json["target_user"])
-            print(connected_clients)
 
-            await websocket_target_user.send("fuckme so hard")
+            print("sender_user :" , message_json["sender_user"])
+            websocket_target_user = connected_clients.get(message_json["target_user"])
+            print("target_user: ", message_json["target_user"])
+            await websocket_target_user.send("sd")
+
+def receiver(websocket):
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    loop.run_until_complete(receiver_async(websocket))
+    loop.close()
 
 
 #         message = datetime.datetime.utcnow().isoformat() + "Z"
 #         websockets.broadcast(CONNECTIONS, message)
-        await asyncio.sleep(random.random() * 2 + 1)
+#         await asyncio.sleep(random.random() * 2 + 1)
 
+
+
+async def communicate(websocket):
+    print("before recv_thread done")
+    recv_thread = threading.Thread(target=receiver(websocket), args=(1,))
+    print("after recv_thread done")
 
 
 """
